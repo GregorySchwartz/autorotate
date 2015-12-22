@@ -1,0 +1,2 @@
+# autorotate
+Autorotate the screen
