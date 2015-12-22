@@ -28,32 +28,34 @@ toCommand dev matrix = "xinput --set-prop "
                     ++ matrix
 
 -- | Rotate the screen based on the incoming message
-rotate :: Device -> Device -> Rotation -> IO ()
-rotate dev touch Normal   = do
+rotate :: Device -> Device -> Maybe Rotation -> IO ()
+rotate dev touch (Just Normal)   = do
     _ <- system "xrandr -o normal"
     _ <- system . toCommand dev $ "1 0 0 0 1 0 0 0 1"
     _ <- system $ "xinput enable " ++ touch
     return ()
-rotate dev touch BottomUp = do
+rotate dev touch (Just BottomUp) = do
     _ <- system "xrandr -o inverted"
     _ <- system . toCommand dev $ "-1 0 1 0 -1 1 0 0 1"
     _ <- system $ "xinput disable " ++ touch
     return ()
-rotate dev touch LeftUp   = do
+rotate dev touch (Just LeftUp) = do
     _ <- system "xrandr -o left"
     _ <- system . toCommand dev $ "0 -1 1 1 0 0 0 0 1"
     _ <- system $ "xinput disable " ++ touch
     return ()
-rotate dev touch RightUp  = do
+rotate dev touch (Just RightUp) = do
     _ <- system "xrandr -o right"
     _ <- system . toCommand dev $ "0 1 0 -1 0 1 0 0 1"
     _ <- system $ "xinput disable " ++ touch
     return ()
+rotate _ _ Nothing = return ()
 
 -- | Convert iio-sensor-proxy monitor-sensor output to a type
-sensorToRotation :: T.Text -> Rotation
+sensorToRotation :: T.Text -> Maybe Rotation
 sensorToRotation x = case snd . T.breakOnEnd ": " $ x of
-                       "normal"    -> Normal
-                       "bottom-up" -> BottomUp
-                       "left-up"   -> LeftUp
-                       "right-up"  -> RightUp
+                       "normal"    -> Just Normal
+                       "bottom-up" -> Just BottomUp
+                       "left-up"   -> Just LeftUp
+                       "right-up"  -> Just RightUp
+                       _           -> Nothing

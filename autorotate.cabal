@@ -1,5 +1,5 @@
 name:                autorotate
-version:             0.1.0.0
+version:             0.1.0.1
 synopsis:            Autorotate the screen
 description:         Autorotates the screen based on monitor-sensor
 homepage:            http://github.com/githubuser/autorotate#readme

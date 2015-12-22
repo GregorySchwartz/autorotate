@@ -2,8 +2,7 @@
 By Gregory W. Schwartz
 
 Autorotate the screen, depends on iio-sensor-proxy containing
-monitor-sensor. To use, pipe monitor-sensor to stdout to autorotate:
-monitor-sensor 2>&1 >/dev/null | autorotate
+monitor-sensor. Gets the output of monitor-sensor through stderr.
 -}
 
 module Main where
@@ -30,17 +29,18 @@ findIn s ss = case filter (isInfixOf s . map toLower) ss of
 
 main :: IO ()
 main = do
-    client  <- connectSession
     devList <- readProcess "xinput" ["--list", "--name-only"] []
+    (_, _, Just hstderr, _) <-
+        createProcess (proc "monitor-sensor" []){ std_err = CreatePipe }
 
     let dev        = findIn "touchscreen" . lines $ devList
         touch      = findIn "touchpad" . lines $ devList
         rotatePipe = rotate dev touch . sensorToRotation
 
-    go rotatePipe
+    go hstderr rotatePipe
   where
-    go rotatePipe = do
-        contents <- T.hGetLine stderr
+    go hstderr rotatePipe = do
+        contents <- T.hGetLine hstderr
 
         rotatePipe contents
-        go rotatePipe
+        go hstderr rotatePipe
